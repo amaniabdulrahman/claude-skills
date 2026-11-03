@@ -1,0 +1,57 @@
+<!doctype html>
+<!-- Ad Studio template (AMANI.AI). Deterministic: window.renderAt(t) draws the frame at t seconds. 1080x1920 vertical.
+     Put Cairo (or your font) woff2 files in ./fonts and your images in ./assets. Edit CONFIG and SC below. -->
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<style>
+@font-face{font-family:Cairo;src:url(fonts/cairo-arabic-700-normal.woff2);font-weight:700}
+@font-face{font-family:Cairo;src:url(fonts/cairo-arabic-800-normal.woff2);font-weight:800}
+:root{--bg1:#FBF6EE;--bg2:#F4ECDF;--bg3:#EADBC4;--accent:#E19D43;--ink:#2A1C12;--muted:#6B4A2E}
+html,body{margin:0;background:#000}
+#s{position:relative;width:1080px;height:1920px;overflow:hidden;background:radial-gradient(circle at 50% 40%,var(--bg1) 0%,var(--bg2) 55%,var(--bg3) 100%);font-family:Cairo,sans-serif;color:var(--ink)}
+.a{position:absolute}
+.tx{position:absolute;left:60px;width:960px;text-align:center;font-weight:800;line-height:1.25;white-space:nowrap}
+.wm{position:absolute;left:0;width:1080px;text-align:center;font-weight:800;font-size:520px;line-height:1;color:var(--accent);opacity:.07}
+.card{position:absolute;background:#fff;padding:16px 16px 0;border-radius:22px;box-shadow:0 26px 50px rgba(70,45,20,.22)}
+.card .im{width:100%;background-size:cover;background-position:center;border-radius:12px}
+.card .cp{font-weight:700;font-size:40px;color:var(--muted);text-align:center;padding:10px 0 16px}
+</style></head><body><div id="s"></div>
+<script>
+const S=document.getElementById('s');
+const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)), lerp=(a,b,k)=>a+(b-a)*k;
+const eo=k=>1-Math.pow(1-k,3), eio=k=>k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2;
+const back=k=>{const c1=1.4,c3=c1+1;return 1+c3*Math.pow(k-1,3)+c1*Math.pow(k-1,2)};
+let T=0; const seg=(a,d)=>clamp((T-a)/d);
+
+// ---------- CONFIG ----------
+const CONFIG={ END:15, BRAND:'BRAND', TAGLINE:'وعد قصير للمنتج', PRODUCT:'assets/product_cut.png', PRODUCT_RATIO:1 /* width/height of the PNG */, PRODUCT_ANCHOR:.5 /* where the product's centre sits across the PNG (0..1), if the cut-out has props on one side */ };
+
+// ---------- helpers ----------
+// words one by one: parts=[[html,t0],...]
+const W=(parts,top,size,extra='')=>`<div class="tx" style="top:${top}px;font-size:${size}px;${extra}">`+parts.map(([h,t0])=>{const k=seg(t0,.35),e=eo(k);
+  return `<span style="display:inline-block;opacity:${clamp(k*2.5)};transform:translateY(${(1-e)*30}px);filter:blur(${(1-clamp(k*2))*8}px)">${h}</span>`}).join(' ')+`</div>`;
+const AC=w=>`<span style="color:var(--accent)">${w}</span>`;
+const POP=(html,t0,top,size,extra='')=>{const k=seg(t0,.35);if(k<=0)return '';const e=back(k);return `<div class="tx" style="top:${top}px;font-size:${size}px;opacity:${clamp(k*3)};transform:scale(${lerp(1.5,1,e)});${extra}">${html}</div>`};
+const WM=()=>`<div class="wm" style="top:${600-T*6}px">${CONFIG.BRAND}</div>`;
+// floating product cut-out: centre x,y, height h, entrance at t0
+const PRODUCT=(cx,cy,h,t0)=>{const k=seg(t0,.8);if(k<=0)return '';const e=back(k),w=h*CONFIG.PRODUCT_RATIO;
+  return `<img class="a" src="${CONFIG.PRODUCT}" style="left:${cx-w*CONFIG.PRODUCT_ANCHOR}px;top:${cy-h/2}px;height:${h}px;opacity:${clamp(k*3)};transform:translateY(${(1-e)*140+Math.sin(T*1.6)*10}px) rotate(${(1-e)*-6}deg);filter:drop-shadow(0 40px 50px rgba(70,45,20,.3))">`};
+// photo card sliding in from a side (dir 1 = from right, -1 = from left)
+const CARD=(src,x,y,w,h,rot,cap,t0,dir=1)=>{const k=seg(t0,.7);if(k<=0)return '';const e=back(k),d=(T-t0)*5;
+  return `<div class="card" style="left:${x}px;top:${y}px;width:${w}px;opacity:${clamp(k*3)};transform:translateX(${(1-e)*700*dir}px) translateY(${-d}px) rotate(${rot+(1-e)*8*dir}deg)"><div class="im" style="height:${h}px;background-image:url(${src})"></div>${cap?`<div class="cp">${cap}</div>`:''}</div>`};
+// brand ribbon sweeping behind the product
+const RIBBON=(t0,y=1000)=>{const k=eio(seg(t0,1));if(k<=0)return '';const L=2600;
+  return `<svg class="a" style="left:0;top:0" width="1080" height="1920"><path d="M-200 ${y+240} C 200 ${y-380}, 700 ${y+430}, 1300 ${y-240}" fill="none" stroke="var(--accent)" stroke-width="150" stroke-linecap="round" stroke-dasharray="${L}" stroke-dashoffset="${L*(1-k)}"/></svg>`};
+
+// ---------- SHOTS: [t0, t1, () => html] ----------
+const SC=[
+ [0,4,()=>WM()+PRODUCT(540,1050,760,.1)+W([['هذا',.4],['مو',.7],['بس',.95],[AC('منتج…'),1.2]],260,104)],
+ [4,9,()=>WM()+CARD('assets/card1.jpg',380,470,640,660,4,'لحظة أولى',4.1,1)+CARD('assets/card2.jpg',60,1060,620,600,-4,'لحظة ثانية',5.8,-1)+W([['سطر',4.2],[AC('أول'),4.6]],150,96)+W([['سطر',5.9],[AC('ثاني'),6.3]],280,96)],
+ [9,CONFIG.END+.01,()=>WM()+RIBBON(9)+PRODUCT(540,1150,820,9.05)+POP(CONFIG.BRAND,9.3,180,220,'color:var(--accent)')+W(CONFIG.TAGLINE.split(' ').map((w,i)=>[i==CONFIG.TAGLINE.split(' ').length-1?AC(w):w,10.2+i*.35]),470,80)],
+];
+const CUTS=SC.slice(1).map(s=>s[0]);
+window.renderAt=t=>{T=t;let html='';for(const [a,b,f] of SC){if(t>=a&&t<b){html=f();break;}}
+ let fade=0;for(const c of CUTS){const d=Math.abs(t-c);if(d<.12)fade=Math.max(fade,1-d/.12);}
+ S.innerHTML=html+(fade>0?`<div class="a" style="inset:0;background:#FBF6EE;opacity:${fade*.55}"></div>`:'');};
+window.DURATION=CONFIG.END;
+window.ready=document.fonts.load('800 40px Cairo','سنع').then(()=>document.fonts.ready);
+</script></body></html>
